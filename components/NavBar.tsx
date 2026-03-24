@@ -43,7 +43,7 @@ const NavBar = () => {
     (filter.find((s) => s.id === "name")?.value as string) || ""
   );
   const [debounced] = useDebouncedValue(value, 200);
-
+  const [isMagnetMode, setIsMagnetMode] = useState<boolean>(false);
   const info = trpc.deluge.getHostInfo.useMutation();
   const setIsv2 = useTorrentStore((s) => s.setIsv2);
   const v2 = useTorrentStore((s) => s.isv2);
@@ -86,8 +86,7 @@ const NavBar = () => {
   }
 
   const handleKeyPress = (event: { key: string; }) =>{
-    console.log(value)
-    if(event.key === "Enter" && value.toLowerCase().startsWith("magnet:")){
+    if(event.key === "Enter" && isMagnetMode){
       startMagnetDownload();
     } 
   }
@@ -117,11 +116,24 @@ const NavBar = () => {
   }, [debounced]);
 
   useEffect(() => {
+      config.refetch();
+  }, [isMagnetMode]);
+
+  useEffect(() => {
       if (config.data) {
         form.setValues(config.data);
       }
     }, [config.data]);
-
+  
+  useEffect(() => {
+      if (value.toLowerCase().startsWith("magnet:")) {
+        setIsMagnetMode(true);
+      }else{
+        setIsMagnetMode(false);
+      }
+      console.log(isMagnetMode);
+    }, [value]);
+    
 
   return (
     <Card
@@ -155,7 +167,7 @@ const NavBar = () => {
           onChange={(event) => setValue(event.currentTarget.value)}
           styles={{ input: { background: theme.colors.dark[8] } }}
           placeholder="Search Torrents or Paste Magnet URL"
-          icon={value.toLowerCase().startsWith("magnet:") ? <IconMagnet /> : <IconSearch />}
+          icon={isMagnetMode ? <IconMagnet /> : <IconSearch />}
           onKeyDown={handleKeyPress}
         />
     <Sort />
@@ -163,7 +175,7 @@ const NavBar = () => {
     <GoToDeluge />
   </Box>
 
-  {value.toLowerCase().startsWith("magnet:") && (
+  {isMagnetMode && (
     <Box pt="md">
           <Space h={"xs"} />
           {magnetinfo.data && (
