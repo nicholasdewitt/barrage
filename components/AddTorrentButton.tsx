@@ -23,6 +23,7 @@ import AddTorrentModal from "./AddTorrentModal";
 const AddTorrentButton = () => {
   const [openedMagnet, setOpenedMagnet] = useState(false);
   const [openedURL, setOpenedURL] = useState(false);
+  const [openedFile, setOpenedFile] = useState(false);
   const v2 = useTorrentStore((s) => s.isv2);
 
   const form = useForm<ConfigValues>({
@@ -44,8 +45,11 @@ const AddTorrentButton = () => {
   });
   const [magnet, setMagnet] = useState("");
   const [url, setUrl] = useState("");
+  const [file, setFile] = useState("");
+  const [fileName, setFileName] = useState("");
   const [magnetError, setMagnetError] = useState("");
   const [urlError, setURLError] = useState("");
+  const [fileError, setFileError] = useState("");
   const [debouncedURL] = useDebouncedValue(url, 200);
 
   const addMagnet = trpc.deluge.addMagnet.useMutation();
@@ -84,8 +88,10 @@ const AddTorrentButton = () => {
     }
   );
 
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    if (openedMagnet || openedURL) {
+    if (openedMagnet || openedURL || openedFile) {
       config.refetch();
     }
     if (!openedMagnet) {
@@ -96,7 +102,12 @@ const AddTorrentButton = () => {
       setURLError("");
       setUrl("");
     }
-  }, [openedMagnet, openedURL]);
+    if (!openedFile) {
+      setFile("");
+      setFileName("");
+      setFileError("");
+    }
+  }, [openedMagnet, openedURL, openedFile]);
 
   useEffect(() => {
     if (config.data) {
@@ -112,8 +123,66 @@ const AddTorrentButton = () => {
 
   const context = trpc.useContext();
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      const reader = new FileReader();
+      reader.onload = (readerEvent) => {
+        const content = readerEvent.target?.result;
+        if (typeof content === "string") {
+          const base64Content = content.split(",")[1];
+          setFile(base64Content);
+          setOpenedFile(true);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <>
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        accept=".torrent"
+        onChange={handleFileChange}
+      />
+      <Modal
+        opened={openedFile}
+        onClose={() => setOpenedFile(false)}
+        title="Add Torrent from File"
+      >
+        <Box mx={"auto"}>
+          <Text weight="bold" size="sm" mb="xs">
+            File: {fileName}
+          </Text>
+          <AddTorrentModal form={form} />
+          <Space h={"md"} />
+          <Group position="right">
+            <Button
+              type="submit"
+              onClick={() => {
+                addTorrent.mutate({
+                  path: file,
+                  config: form.values,
+                });
+                setOpenedFile(false);
+              }}
+              disabled={!file}
+              variant="light"
+              color={"blue"}
+              sx={(theme) => ({
+                borderWidth: 1,
+                borderColor: theme.colors.blue,
+              })}
+            >
+              Add
+            </Button>
+          </Group>
+        </Box>
+      </Modal>
       <Modal
         opened={openedMagnet}
         onClose={() => setOpenedMagnet(false)}
@@ -254,6 +323,12 @@ const AddTorrentButton = () => {
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Label>Add Torrent</Menu.Label>
+          <Menu.Item
+            onClick={() => fileInputRef.current?.click()}
+            icon={<IconFile size={14} />}
+          >
+            File
+          </Menu.Item>
           <Menu.Item
             onClick={() => setOpenedMagnet(true)}
             icon={<IconMagnet size={14} />}

@@ -47,6 +47,10 @@ const TorrentDetail = ({ id }: { id: string }) => {
             value={torrent.data.ratio.toPrecision(3)}
           />
           <DetailGridCol
+            label="Tracker"
+            value={torrent.data.raw["tracker_host"]}
+          />
+          <DetailGridCol
             label="Peers"
             value={`${torrent.data.connectedPeers} (${torrent.data.totalPeers})`}
           />

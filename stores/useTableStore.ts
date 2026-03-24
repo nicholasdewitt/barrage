@@ -31,7 +31,7 @@ const useTableStore = create<TableStoreState>((set) => ({
   },
   sorting: [
     {
-      id: "queuePosition",
+      id: "state",
       desc: false,
     },
   ],

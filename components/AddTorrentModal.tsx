@@ -26,9 +26,9 @@ const AddTorrentModal = ({
 }) => {
   return (
     <Accordion variant="separated">
-      <Accordion.Item value="Advance options">
+      <Accordion.Item value="Advanced options">
         <Accordion.Control icon={<IconSettings size={20} color="teal" />}>
-          Advance options
+          Advanced options
         </Accordion.Control>
         <Accordion.Panel>
           <form>

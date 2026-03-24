@@ -266,6 +266,10 @@ export const deluge = router({
     return res.result;
   }),
 
+  getDelugeURL: protectedProcedure.query(() => {
+    return process.env.DELUGE_URL;
+  }),
+
   setTorrentOption: protectedProcedure
     .input(
       z.object({
@@ -366,7 +370,7 @@ export const deluge = router({
       ) as Partial<AddTorrentOptions>;
       console.log(notNullconfig);
 
-      const added = await delugeClient.addTorrentMagnet(
+      const added = await delugeClient.addTorrent(
         input.path,
         notNullconfig
       );

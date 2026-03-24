@@ -27,7 +27,7 @@ const getStatusTextColor = (
 ): DefaultMantineColor | "dimmed" => {
   switch (state) {
     case TorrentState.downloading:
-      return "green";
+      return "lightgreen";
     case TorrentState.checking:
       return "blue";
     case TorrentState.paused:
@@ -79,12 +79,15 @@ const Torrent = ({
         >
           <Flex align={"center"} justify={"space-between"} gap={"xs"}>
             <div>
+              
               <Center>
-                <Title
-                  color={"dimmed"}
-                  weight={800}
-                  order={largeScreen ? 2 : 3}
-                >{`#${torrent.queuePosition}`}</Title>
+                {torrent.state != TorrentState.seeding &&
+                  <Title
+                    color={"dimmed"}
+                    weight={800}
+                    order={largeScreen ? 2 : 3}
+                  >{`#${torrent.queuePosition}`}</Title>
+                }
 
                 <Text
                   component={Link}
@@ -100,6 +103,7 @@ const Torrent = ({
                   sx={{
                     flex: 1,
                     wordBreak: "break-all",
+                    marginLeft: torrent.state == TorrentState.seeding ? '0px !important' : undefined,
                     "&:hover": {
                       cursor: "pointer",
                       textDecoration: "underline  solid ",
@@ -153,6 +157,7 @@ const Torrent = ({
               style={{ flexGrow: 1 }}
               size={10}
               value={torrent.progress * 100}
+              color={torrent.state == TorrentState.seeding ? "teal" : "blue"}
               radius={"lg"}
             />
           </Flex>
